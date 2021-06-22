@@ -1,0 +1,24 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+  package="cn.yymm.flu_dingtalk">
+  <application>
+        <activity
+            android:name=".ddshare.DDShareActivity"
+            android:launchMode="singleTask"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
+        <activity-alias
+            android:name="${applicationId}.ddshare.DDShareActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:targetActivity="cn.yymm.flu_dingtalk.ddshare.DDShareActivity"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity-alias>
+    </application>
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+</manifest>
