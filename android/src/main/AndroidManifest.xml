@@ -1,6 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-  package="cn.yymm.flu_dingtalk">
-  <application>
+    xmlns:tools="http://schemas.android.com/tools"
+    package="cn.yymm.flu_dingtalk">
+    <application>
         <activity
             android:name=".ddshare.DDShareActivity"
             android:launchMode="singleTask"

@@ -54,10 +54,11 @@ object IDDShareApiHandler {
     }
 
     fun isDingTalkSupportSSO(result: MethodChannel.Result) {
+        val req = SendAuth.Req()
         if (iddShareApi == null)
             result.error(CallResult.RESULT_API_NULL, "DingDing Api Not Registered", null)
         else
-            result.success(iddShareApi!!.isDDSupportDingAPI)
+            result.success( !(req.supportVersion > iddShareApi!!.ddSupportAPI) )
     }
 
     fun openDingtalk(result: MethodChannel.Result) {
@@ -73,8 +74,6 @@ object IDDShareApiHandler {
         req.state = call.argument<String>("state") ?: "state";
         if (iddShareApi == null) {
             result.error(CallResult.RESULT_API_NULL, "DingDing Api Not Registered", null)
-        } else if (!iddShareApi!!.isDDAppInstalled) {
-            result.error(CallResult.RESULT_NOT_INSTALLED, "DingDing not installed", null)
         } else if (!iddShareApi!!.isDDAppInstalled) {
             result.error(CallResult.RESULT_NOT_INSTALLED, "DingDing not installed", null)
         } else if (req.supportVersion > iddShareApi!!.ddSupportAPI) {
