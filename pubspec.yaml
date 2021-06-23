@@ -1,5 +1,5 @@
 name: flu_dingtalk
-description: dingtalk SDK flutter plugin.
+description: dingtalk SDK flutter plugin. Dingtalk achieving the function of login and sharing.
 version: 1.0.0
 homepage: https://github.com/yangyu92/flu_dingtalk
 
