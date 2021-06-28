@@ -15,8 +15,9 @@ dingtalk SDK flutter plugin.
   s.source           = { :path => '.' }
   s.source_files = 'Classes/**/*'
   s.public_header_files = 'Classes/**/*.h'
+  s.static_framework = true
   s.dependency 'Flutter'
-  s.platform = :ios, '9.0'
+  s.platform = :ios, '8.0'
 
   # v3.0.0
   s.subspec 'vendor' do |sp|
@@ -25,7 +26,6 @@ dingtalk SDK flutter plugin.
     #sp.libraries = 'iconv', 'sqlite3', 'stdc++', 'z'
     #sp.requires_arc = true
   end
-
   # Flutter.framework does not contain a i386 slice.
   s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386' }
 end

@@ -16,7 +16,7 @@
 
 ```yaml
 dependencies:
-  flu_dingtalk: ^1.0.0
+  flu_dingtalk: ^1.0.0+2
 ```
 
 ## android
