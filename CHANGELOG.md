@@ -1,3 +1,6 @@
+## 1.0.0+3
+* fix iOS
+
 ## 1.0.0+2
 
 * repair iOS build Error

@@ -113,8 +113,8 @@ typedef void (^Handler)(FlutterMethodCall*,FlutterResult);
         NSLog(@"[FlutterDDShareLog]授权码回调=====>%@",accessCode);
         NSDictionary * result=@{
             @"code":accessCode,
-            @"mErrCode":@(authResp.errorCode),
-            @"mErrStr":authResp.errorMessage,
+            @"errCode":@(authResp.errorCode),
+            @"errStr":authResp.errorMessage,
             @"mTransaction":@"",
             @"state":@"",
         };
