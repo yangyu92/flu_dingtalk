@@ -1,6 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="cn.yymm.flu_dingtalk">
+
     <application>
         <activity
             android:name=".ddshare.DDShareActivity"
@@ -19,7 +20,12 @@
             </intent-filter>
         </activity-alias>
     </application>
-    <uses-permission android:name="android.permission.INTERNET" />
+
+    <uses-permission
+        android:name="android.permission.INTERNET"
+        tools:ignore="ManifestOrder" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <!--如果你的App targetSdkVersion>=30，请添加权限声明-->
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
 </manifest>

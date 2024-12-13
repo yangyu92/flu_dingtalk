@@ -1,0 +1,36 @@
+
+targets:
+  $default:
+    builders:
+      pigeon_generator:
+        options:
+          inputs: pigeons # Default
+          dart:
+            out: 'lib/src/' # Defaults to lib/pigeons if one_language is not set or false
+            test_out: 'test' # Or true/false
+            package_name: 'flu_dingtalk'
+          kotlin: # Or true/false
+            out: 'android/src/main/kotlin/cn/yymm/flu_dingtalk'
+            options:
+              package: 'cn.yymm.flu_dingtalk'
+          swift: # Or true/false
+            out: 'ios/Classes'
+          base_path: 'flu_dingtalk'
+          skip_outputs:
+            defaults: [macos,linux,windows] # Options include: android, ios, macos, linux, windows
+          out_template: 'name.g.extension' # Default
+
+# inputs: pigeons
+# dart:
+#   out: "lib"
+#   test_out: "test"
+#   package_name: "flu_dingtalk"
+# kotlin:
+#   out: "android/app/src/main/kotlin/cn/yymm/flu_dingtalk"
+#   options:
+#     package: "cn.yymm.flu_dingtalk"
+# swift:
+#   out: "ios/Runner"
+
+additional_public_assets:
+  - pigeons/**

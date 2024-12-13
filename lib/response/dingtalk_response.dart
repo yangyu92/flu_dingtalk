@@ -1,59 +1,53 @@
-const String _mErrCode = "errCode";
-const String _mErrStr = "errStr";
-const String _mTransaction = "mTransaction";
-
-typedef BaseDDShareResponse _DDShareResponseInvoker(Map argument);
-
-///Response callback mapping
-Map<String, _DDShareResponseInvoker> _nameAndResponseMapper = {
-  "onShareResponse": (Map argument) => DDShareResponse.fromMap(argument),
-  "onAuthResponse": (Map argument) => DDShareAuthResponse.fromMap(argument),
-};
+import 'package:flu_dingtalk/flu_dingtalk_plugin_api.dart';
 
 ///Base DingTalk Response callback;
 ///基础响应
-class BaseDDShareResponse {
-  final int mErrCode;
+class BaseDDResponse {
+  final String mErrCode;
   final String mErrStr;
-  final String mTransaction;
 
-  bool get isSuccessful => mErrCode == 0;
+  bool get isSuccessful => mErrCode == "0";
 
-  BaseDDShareResponse._(this.mErrCode, this.mErrStr, this.mTransaction);
-
-  /// create response from response pool
-  factory BaseDDShareResponse.create(String name, Map argument) =>
-      _nameAndResponseMapper[name]!(argument);
+  BaseDDResponse(this.mErrCode, this.mErrStr);
+  factory BaseDDResponse.fromDTBaseResponse(DTBaseResponse resp) =>
+      BaseDDResponse(resp.errorCode, resp.errorMessage);
 }
 
 ///DingTalk share message response
 ///钉钉分享响应
-class DDShareResponse extends BaseDDShareResponse {
-  final int type;
-
-  DDShareResponse.fromMap(Map map)
-      : type = map["type"],
-        super._(map[_mErrCode], map[_mErrStr] ?? "", map[_mTransaction] ?? "");
+class DDShareResponse extends BaseDDResponse {
+  final bool shareResult;
+  DDShareResponse(super.mErrCode, super.mErrStr, this.shareResult);
+  factory DDShareResponse.fromDTBaseResponse(FluDTShareResp resp) =>
+      DDShareResponse(resp.errorCode, resp.errorMessage, resp.shareResult);
 }
 
 ///DingTalk auth message response
 ///钉钉授权响应
-class DDShareAuthResponse extends BaseDDShareResponse {
-  final String code;
-  final String state;
+class DDAuthResponse extends BaseDDResponse {
+  final String accessCode;
+  final String? state;
 
-  DDShareAuthResponse.fromMap(Map map)
-      : code = map["code"],
-        state = map["state"] ?? "",
-        super._(map[_mErrCode], map[_mErrStr] ?? "", map[_mTransaction] ?? "");
+  DDAuthResponse(super.mErrCode, super.mErrStr, this.accessCode, this.state);
+  factory DDAuthResponse.fromDTBaseResponse(FluDTAuthorizeResp resp) =>
+      DDAuthResponse(
+          resp.errorCode, resp.errorMessage, resp.accessCode, resp.state);
 }
 
+
+
+// errorCode = 0 成功
+// errorCode = -1 通用错误
+// errUserCancel = -2 用户取消
+// errSentFailed = -3 发送失败
+// errAuthDenied = -4 授权失败
+// errUnsupport = -5 DingTalk不支持
 ///错误代码
-class ErrCode {
-  static const ERR_OK = 0;
-  static const ERR_COMM = -1;
-  static const ERR_USER_CANCEL = -2;
-  static const ERR_SENT_FAILED = -3;
-  static const ERR_AUTH_DENIED = -4;
-  static const ERR_UNSUPPORT = -5;
-}
+// class ErrCode {
+//   static const ERR_OK = 0;
+//   static const ERR_COMM = -1;
+//   static const ERR_USER_CANCEL = -2;
+//   static const ERR_SENT_FAILED = -3;
+//   static const ERR_AUTH_DENIED = -4;
+//   static const ERR_UNSUPPORT = -5;
+// }

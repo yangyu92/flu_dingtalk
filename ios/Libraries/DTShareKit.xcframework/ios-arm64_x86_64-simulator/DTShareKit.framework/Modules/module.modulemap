@@ -1,0 +1,6 @@
+framework module DTShareKit {
+  umbrella header "DTShareKit.h"
+
+  export *
+  module * { export * }
+}

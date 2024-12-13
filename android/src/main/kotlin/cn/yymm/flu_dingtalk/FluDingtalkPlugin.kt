@@ -1,94 +1,267 @@
 package cn.yymm.flu_dingtalk
 
-import androidx.annotation.NonNull
-import cn.yymm.flu_dingtalk.constant.Methods
-import cn.yymm.flu_dingtalk.handlers.IDDShareApiHandler
-import cn.yymm.flu_dingtalk.handlers.IDDShareResponseHandler
-
+import android.util.Log
+import com.android.dingtalk.share.ddsharemodule.DDShareApiFactory
+import com.android.dingtalk.share.ddsharemodule.IDDShareApi
+import com.android.dingtalk.share.ddsharemodule.message.DDImageMessage
+import com.android.dingtalk.share.ddsharemodule.message.DDMediaMessage
+import com.android.dingtalk.share.ddsharemodule.message.DDTextMessage
+import com.android.dingtalk.share.ddsharemodule.message.DDWebpageMessage
+import com.android.dingtalk.share.ddsharemodule.message.SendAuth
+import com.android.dingtalk.share.ddsharemodule.message.SendMessageToDD
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
-import io.flutter.plugin.common.MethodCall
-import io.flutter.plugin.common.MethodChannel
-import io.flutter.plugin.common.MethodChannel.MethodCallHandler
-import io.flutter.plugin.common.MethodChannel.Result
-import io.flutter.plugin.common.PluginRegistry.Registrar
+import java.io.File
 
-/** FluDingtalkPlugin */
-class FluDingtalkPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
-  private lateinit var channel : MethodChannel
+/** FluDingTalkPlugin */
+class FluDingTalkPlugin : FlutterPlugin, FluDingtalkPluginApi, ActivityAware {
 
-  override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
-    channel = MethodChannel(flutterPluginBinding.binaryMessenger, "flu_dingtalk")
-    channel.setMethodCallHandler(this)
-    IDDShareResponseHandler.setMethodChannel(channel)
-  }
+    private val iddShareApi: IDDShareApi?
+        get() {
+            return IDDShareApiHandler.iddShareApi
+        }
 
-  companion object {
-    @JvmStatic
-    fun registerWith(registrar: Registrar) {
-      val channel = MethodChannel(registrar.messenger(), "flu_dingtalk")
-      channel.setMethodCallHandler(FluDingtalkPlugin())
-      IDDShareApiHandler.setRegister(registrar.activity())
-      IDDShareResponseHandler.setMethodChannel(channel)
+    override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
+        FluDingtalkPluginApi.setUp(flutterPluginBinding.binaryMessenger, this)
+        IDDShareApiHandler.dingTalkEvent = FluDingTalkEventApi(flutterPluginBinding.binaryMessenger)
     }
-  }
 
-  override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
-    when (call.method){
-      Methods.OPENAPI_VERSION -> {
-        IDDShareApiHandler.openAPIVersion(call,result)
-      }
-      Methods.REGISTER_APP -> {
-        IDDShareApiHandler.registerApp(call,result)
-      }
-      Methods.UNREGISTER_APP -> {
-        IDDShareApiHandler.unregisterApp(result)
-      }
-      Methods.IS_Ding_Ding_INSTALLED -> {
-        IDDShareApiHandler.checkInstall(result)
-      }
-      Methods.ISDINGTALK_SUPPORTSSO -> {
-        IDDShareApiHandler.isDingTalkSupportSSO(result)
-      }
-      Methods.OPEN_DINGTALK -> {
-        IDDShareApiHandler.openDingtalk(result)
-      }
-      Methods.SEND_AUTH -> {
-        IDDShareApiHandler.sendAuth(call,result)
-      }
-      Methods.SEND_TEXT_MESSAGE -> {
-        IDDShareApiHandler.sendTextMessage(call.arguments as Map<String?, Any?>,result)
-      }
-      Methods.SEND_IMAGE_MESSAGE -> {
-        IDDShareApiHandler.sendImageMessage(call.arguments as Map<String?, Any?>,result)
-      }
-      Methods.SEND_WEB_PAGE_MESSAGE -> {
-        IDDShareApiHandler.sendWebPageMessage(call.arguments as Map<String?, Any?>,result)
-      }
-      else -> {
-        result.notImplemented()
-      }
+    override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
+        FluDingtalkPluginApi.setUp(binding.binaryMessenger, null)
+        IDDShareApiHandler.dingTalkEvent = FluDingTalkEventApi(binding.binaryMessenger)
     }
-  }
 
-  override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
-    channel.setMethodCallHandler(null)
-  }
+    override fun openAPIVersion(): String {
+        val req = SendAuth.Req()
+        return "${req.supportVersion}"
+    }
 
-  override fun onDetachedFromActivity() {
-    IDDShareApiHandler.setRegister(null)
-  }
+    override fun openDDApp(callback: (Result<Boolean>) -> Unit) {
+        try {
+            val result = iddShareApi!!.openDDApp()
+            callback(Result.success(result))
+        } catch (error: Exception) {
+            throw error
+        }
+    }
 
-  override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
-    IDDShareApiHandler.setRegister(binding.activity)
-  }
+    override fun isDingDingInstalled(): Boolean {
+        return iddShareApi!!.isDDAppInstalled
+    }
 
-  override fun onAttachedToActivity(binding: ActivityPluginBinding) {
-    IDDShareApiHandler.setRegister(binding.activity)
-  }
+    override fun registerApp(appId: String, iosBundleId: String): Boolean {
+        IDDShareApiHandler.iddShareApi =
+            DDShareApiFactory.createDDShareApi(IDDShareApiHandler.activity, appId, true)
+        return iddShareApi!!.registerApp(appId)
+    }
 
-  override fun onDetachedFromActivityForConfigChanges() {
-    IDDShareApiHandler.setRegister(null)
-  }
+    override fun isDingTalkSupportSSO(): Boolean {
+        val req = SendAuth.Req()
+        return req.supportVersion <= iddShareApi!!.ddSupportAPI
+    }
+
+    override fun sendAuth(authReq: DTAuthReq, callback: (Result<Boolean>) -> Unit) {
+        val req = SendAuth.Req()
+        req.scope = SendAuth.Req.SNS_LOGIN
+        req.state = authReq.state
+        if (verifyDingTalk()) {
+            try {
+                val result = iddShareApi!!.sendReq(req)
+                callback(Result.success(result))
+            } catch (error: Exception) {
+                throw error
+            }
+        }
+    }
+
+    override fun sendTextMessage(text: String, callback: (Result<Boolean>) -> Unit) {
+        val isSupport: Boolean = IDDShareApiHandler.iddShareApi!!.isDDSupportAPI
+        Log.d("yy", "是否支持分享到好友=======>$isSupport")
+
+        if (verifyDingTalk()) {
+            //初始化一个DDTextMessage对象
+            val textObject = DDTextMessage()
+            textObject.mText = text
+
+            //用DDTextMessage对象初始化一个DDMediaMessage对象
+            val mediaMessage = DDMediaMessage()
+            mediaMessage.mMediaObject = textObject
+
+            //构造一个Req
+            val req = SendMessageToDD.Req()
+            req.mMediaMessage = mediaMessage
+            try {
+                val result = iddShareApi!!.sendReq(req)
+                callback(Result.success(result))
+            } catch (error: Exception) {
+                Log.d("yy", "sendAuth ===========>$error")
+                callback(
+                    Result.failure(
+                        FluDingtalkPluginFlutterError(
+                            "-5",
+                            error.message,
+                            error.toString()
+                        )
+                    )
+                )
+            }
+        }
+    }
+
+    override fun sendWebPageMessage(
+        url: String,
+        title: String,
+        content: String,
+        thumbUrl: String,
+        callback: (Result<Boolean>) -> Unit
+    ) {
+        val isSupport: Boolean = IDDShareApiHandler.iddShareApi!!.isDDSupportAPI
+        Log.d("yy", "是否支持分享到好友=======>$isSupport")
+
+        if (verifyDingTalk()) {
+            val mUrl = url as String?
+
+            //初始化一个DDWebpageMessage并填充网页链接地址
+            val webPageObject = DDWebpageMessage()
+            webPageObject.mUrl = mUrl
+
+            //构造一个DDMediaMessage对象
+            val webMessage = DDMediaMessage()
+            webMessage.mMediaObject = webPageObject
+            webMessage.mTitle = title
+            webMessage.mContent = content
+            webMessage.mThumbUrl = thumbUrl
+            // 网页分享的缩略图也可以使用bitmap形式传输
+//         webMessage.setThumbImage(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher));
+
+            //构造一个Req
+            val webReq = SendMessageToDD.Req()
+            webReq.mMediaMessage = webMessage
+            //        webReq.transaction = buildTransaction("webpage");
+            try {
+                val result = iddShareApi!!.sendReq(webReq)
+                callback(Result.success(result))
+            } catch (error: Exception) {
+                Log.d("yy", "sendAuth ===========>$error")
+                callback(
+                    Result.failure(
+                        FluDingtalkPluginFlutterError(
+                            "-5",
+                            error.message,
+                            error.toString()
+                        )
+                    )
+                )
+            }
+        }
+    }
+
+    override fun sendImageMessage(
+        picUrl: String?,
+        picPath: String?,
+        callback: (Result<Boolean>) -> Unit
+    ) {
+        val isSupport: Boolean = IDDShareApiHandler.iddShareApi!!.isDDSupportAPI
+        Log.d("yy", "是否支持分享到好友=======>$isSupport")
+
+        if (verifyDingTalk()) {
+            //初始化一个DDImageMessage
+            val imageObject = DDImageMessage()
+            //url图片
+            if (picUrl != null) {
+                imageObject.mImageUrl = picUrl
+            } else if (picPath != null) {
+                //本地图片
+                val file = File(picPath)
+                if (!file.exists()) {
+                    Log.d("FlutterDDShareLog", "图片路径无效: $picPath")
+                    callback(
+                        Result.failure(
+                            FluDingtalkPluginFlutterError(
+                                "-1",
+                                "picPath error",
+                                "图片路径无效"
+                            )
+                        )
+                    )
+                } else {
+                    imageObject.mImagePath = picPath
+                }
+            } else {
+                Log.d("FlutterDDShareLog", "无图片来源")
+                callback(
+                    Result.failure(
+                        FluDingtalkPluginFlutterError(
+                            "-1",
+                            "Image error",
+                            "请传输图片来源"
+                        )
+                    )
+                )
+            }
+
+            //构造一个mMediaObject对象
+            val mediaMessage = DDMediaMessage()
+            mediaMessage.mMediaObject = imageObject
+
+            //构造一个Req
+            val req = SendMessageToDD.Req()
+            req.mMediaMessage = mediaMessage
+            //        req.transaction = buildTransaction("image");
+            try {
+                val result = iddShareApi!!.sendReq(req)
+                callback(Result.success(result))
+            } catch (error: Exception) {
+                Log.d("yy", "sendAuth ===========>$error")
+                callback(
+                    Result.failure(
+                        FluDingtalkPluginFlutterError(
+                            "-5",
+                            error.message,
+                            error.toString()
+                        )
+                    )
+                )
+            }
+        }
+    }
+
+    override fun onAttachedToActivity(binding: ActivityPluginBinding) {
+        IDDShareApiHandler.setRegister(binding)
+    }
+
+    override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
+        IDDShareApiHandler.setRegister(binding)
+    }
+
+    override fun onDetachedFromActivityForConfigChanges() {
+        IDDShareApiHandler.setRegister(null)
+    }
+
+    override fun onDetachedFromActivity() {
+        IDDShareApiHandler.setRegister(null)
+    }
+
+    private fun verifyDingTalk(): Boolean {
+        val req = SendAuth.Req()
+        if (iddShareApi == null) {
+            throw FluDingtalkPluginFlutterError(
+                "-1",
+                "DingDing Api Not Registered"
+            )
+        } else if (!iddShareApi!!.isDDAppInstalled) {
+            throw FluDingtalkPluginFlutterError(
+                "-2",
+                "DingDing not installed"
+            )
+        } else if (req.supportVersion > iddShareApi!!.ddSupportAPI) {
+            //钉钉版本过低，不支持登录授权
+            throw FluDingtalkPluginFlutterError(
+                "-2",
+                "DingDing version is too low"
+            )
+        }
+        return true
+    }
 }

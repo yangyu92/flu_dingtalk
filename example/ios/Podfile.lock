@@ -1,25 +1,28 @@
 PODS:
-  - flu_dingtalk (0.0.1):
-    - flu_dingtalk/vendor (= 0.0.1)
-    - Flutter
-  - flu_dingtalk/vendor (0.0.1):
+  - flu_dingtalk (0.0.2):
     - Flutter
   - Flutter (1.0.0)
+  - integration_test (0.0.1):
+    - Flutter
 
 DEPENDENCIES:
   - flu_dingtalk (from `.symlinks/plugins/flu_dingtalk/ios`)
   - Flutter (from `Flutter`)
+  - integration_test (from `.symlinks/plugins/integration_test/ios`)
 
 EXTERNAL SOURCES:
   flu_dingtalk:
     :path: ".symlinks/plugins/flu_dingtalk/ios"
   Flutter:
     :path: Flutter
+  integration_test:
+    :path: ".symlinks/plugins/integration_test/ios"
 
 SPEC CHECKSUMS:
-  flu_dingtalk: 68b5e5d9d837472c83ad802dd15ed2b30c0c78d3
-  Flutter: 434fef37c0980e73bb6479ef766c45957d4b510c
+  flu_dingtalk: 274c961177d74c464a8ac68c641e053d21c3f893
+  Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
+  integration_test: 252f60fa39af5e17c3aa9899d35d908a0721b573
 
-PODFILE CHECKSUM: 8e679eca47255a8ca8067c4c67aab20e64cb974d
+PODFILE CHECKSUM: 819463e6a0290f5a72f145ba7cde16e8b6ef0796
 
-COCOAPODS: 1.10.1
+COCOAPODS: 1.15.2
